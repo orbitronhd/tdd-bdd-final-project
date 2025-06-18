@@ -163,9 +163,83 @@ class TestProductRoutes(TestCase):
         response = self.client.post(BASE_URL, data={}, content_type="plain/text")
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
-    #
-    # ADD YOUR TEST CASES HERE
-    #
+    def test_get_product(self):
+        """It should Get a single Product"""
+        # get the id of a product
+        test_product = self._create_products(1)[0]
+        response = self.client.get(f"{BASE_URL}/{test_product.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(data["name"], test_product.name)
+
+    def test_get_product_not_found(self):
+        """It should not Get a Product thats not found"""
+        response = self.client.get(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        self.assertIn("was not found", data["message"])
+
+    def test_update_product(self):
+        """It should Update an existing Product"""
+        # create a product to update
+        test_product = ProductFactory()
+        response = self.client.post(BASE_URL, json=test_product.serialize())
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # update the product
+        new_product = response.get_json()
+        new_product["description"] = "unknown"
+        response = self.client.put(f"{BASE_URL}/{new_product['id']}", json=new_product)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        updated_product = response.get_json()
+        self.assertEqual(updated_product["description"], "unknown")
+
+    def test_delete_product(self):
+        """It should Delete a Product"""
+        products = self._create_products(5)
+        product_count = self.get_product_count()
+        test_product = products[0]
+        response = self.client.delete(f"{BASE_URL}/{test_product.id}")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(len(response.data), 0)
+        # make sure they are deleted
+        response = self.client.get(f"{BASE_URL}/{test_product.id}")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        new_count = self.get_product_count()
+        self.assertEqual(new_count, product_count - 1)
+
+    def test_get_product_list(self):
+        """It should Get a list of Products"""
+        self._create_products(5)
+        # send a self.client.get() request to the BASE_URL
+        # assert that the resp.status_code is status.HTTP_200_OK
+        # get the data from resp.get_json()
+        # assert that the len() of the data is 5 (the number of products you created)
+
+    def test_query_by_category(self):
+        """It should Query Products by category"""
+        products = self._create_products(10)
+        # retrieves the category of the first product in the products list and assigns it to the variable category
+        # create a list named found, containing products from the products list whose category matches the category variable
+        # check the count of products match the specified category and assign it to the variable found_count
+        # Log a debug message indicating the count and details of the products found
+        # send an HTTP GET request to the URL specified by the BASE_URL variable, along with a query parameter "category"
+        # assert that response status code is 200, indicating a successful request (HTTP 200 OK)
+        # retrieve the JSON data from the response
+        # assert that the length of the data list (i.e., the number of products returned in the response) is equal to found_count
+        # use a for loop to check each product in the data list and verify that all returned products belong to the queried category
+
+    def test_query_by_availability(self):
+        """It should Query Products by availability"""
+        products = self._create_products(10)
+        # list named available_products is initialized to store the products based on their availability status
+        # store the  count of available products.
+        # Log a debug message indicating the count and details of the available products
+        # send an HTTP GET request to the URL specified by the BASE_URL variable, along with a query parameter "available" set to true.
+        # assert that response status code is 200, indicating a successful request (HTTP 200 OK)
+        # retrieve the JSON data from the response
+        # assert that the length of the data list (i.e., the number of products returned in the response) is equal to available_count
+        # use a for loop to check each product in the data list and verify that the "available" attribute of each product is set to True       
 
     ######################################################################
     # Utility functions
