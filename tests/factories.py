@@ -46,7 +46,7 @@ class ProductFactory(factory.Factory):
             "Wrench"
         ]
     )
-    description = factory.Faker("Text")
+    description = factory.Faker("text")
     price = FuzzyDecimal(.0, 2000.0, 2)
     available = FuzzyChoice(choices=[True, False])
     category = FuzzyChoice(
